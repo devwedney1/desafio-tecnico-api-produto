@@ -1,0 +1,10 @@
+{
+  "name": "projeto/av2",
+  "description": "av2 de back-end",
+  "require": {
+    "php": "^8.2",
+    "slim/slim": "4.*",
+    "slim/psr7": "^1.7",
+    "guzzlehttp/psr7": "^2"
+  }
+}

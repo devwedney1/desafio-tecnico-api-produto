@@ -1,0 +1,43 @@
+services:
+  php:
+    build:
+      context: .
+      dockerfile: .docker/php-fpm/Dockerfile
+    volumes:
+      - ./:/app
+    networks:
+      - laravel
+    depends_on:
+      - av2-db
+
+  nginx:
+    build:
+      context: .
+      dockerfile: .docker/nginx/Dockerfile
+    volumes:
+      - ./:/app
+    ports:
+      - "8000:80"
+    depends_on:
+      - php
+    networks:
+      - laravel
+
+  av2-db:
+    container_name: mysql
+    image: mysql
+    volumes:
+      - .docker/db_data:/var/lib/mysql
+    environment:
+      MYSQL_ROOT_PASSWORD: ${DB_ROOT_PASSWORD}
+      MYSQL_DATABASE: ${DB_DATABASE}
+      MYSQL_USER: ${DB_USERNAME}
+      MYSQL_PASSWORD: ${DB_PASSWORD}
+    ports:
+      - "${DB_PORT_TWO}:${DB_PORT}"
+    networks:
+      - laravel
+
+networks:
+  laravel:
+    driver: bridge
