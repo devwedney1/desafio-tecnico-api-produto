@@ -3,8 +3,11 @@ use App\Http\Requests\JurosRequest;
 use Psr\Http\Message\ResponseInterface as Response;
 use Psr\Http\Message\ServerRequestInterface as Request;
 use Slim\Factory\AppFactory;
+use EstatisticaController;
 
 require __DIR__ . '/../vendor/autoload.php';
+require_once __DIR__ . '/../app/Models/Compra.php';
+require_once __DIR__ . '/../app/Controllers/EstatisticaController.php';
 
 /**
  * Instantiate App
@@ -47,5 +50,7 @@ $app->put('/juros', function (Request $request, Response $response) {
     $handler = new JurosRequest();
     return $handler->executar($request, $response);
 });
+// Rota para estatistica
+$app->get('/estatistica', [new EstatisticaController(), 'index']);
 // Run app
 $app->run();

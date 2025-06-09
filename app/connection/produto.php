@@ -22,7 +22,7 @@ class DataConnection
             }
             return self::$instance;
         } catch (PDOException $e) {
-            error_log("Erro de conexão com o banco: " . $e->get_message());
+            error_log("Erro de conexão com o banco: " . $e->getMessage());
             return null;
         }
     }
