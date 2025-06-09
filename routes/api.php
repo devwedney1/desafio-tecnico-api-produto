@@ -1,4 +1,5 @@
 <?php
+use App\Http\Requests\JurosRequest;
 use Psr\Http\Message\ResponseInterface as Response;
 use Psr\Http\Message\ServerRequestInterface as Request;
 use Slim\Factory\AppFactory;
@@ -40,5 +41,11 @@ $app->get('/hello/{name}', function (Request $request, Response $response, $args
     return $response;
 });
 
+
+// ✅ Rota PUT /juros usando JurosRequest
+$app->put('/juros', function (Request $request, Response $response) {
+    $handler = new JurosRequest();
+    return $handler->executar($request, $response);
+});
 // Run app
 $app->run();
