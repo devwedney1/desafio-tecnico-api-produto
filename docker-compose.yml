@@ -38,6 +38,15 @@ services:
     networks:
       - laravel
 
+  phpmyadmin:
+    image: phpmyadmin/phpmyadmin
+    environment:
+      PMA_HOST: av2-db
+      PMA_USER: root
+      PMA_PASSWORD: ${DB_ROOT_PASSWORD}
+    ports:
+      - "8888:80"
+
 networks:
   laravel:
     driver: bridge
