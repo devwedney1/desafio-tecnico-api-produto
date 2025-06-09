@@ -6,7 +6,7 @@ services:
     volumes:
       - ./:/app
     networks:
-      - laravel
+      - test-api-produto
     depends_on:
       - av2-db
 
@@ -17,17 +17,17 @@ services:
     volumes:
       - ./:/app
     ports:
-      - "8000:80"
+      - "8989:80"
     depends_on:
       - php
     networks:
-      - laravel
+      - test-api-produto
 
   av2-db:
-    container_name: mysql
-    image: mysql
+    image: mysql:8.0
     volumes:
       - .docker/db_data:/var/lib/mysql
+      - ./app/database/produto.sql:/docker-entrypoint-initdb.d/produto.sql
     environment:
       MYSQL_ROOT_PASSWORD: ${DB_ROOT_PASSWORD}
       MYSQL_DATABASE: ${DB_DATABASE}
@@ -36,7 +36,12 @@ services:
     ports:
       - "${DB_PORT_TWO}:${DB_PORT}"
     networks:
-      - laravel
+      - test-api-produto
+    healthcheck:
+      test: [ "CMD", "mysqladmin", "ping", "-h", "localhost" ]
+      interval: 10s
+      timeout: 5s
+      retries: 5
 
   phpmyadmin:
     image: phpmyadmin/phpmyadmin
@@ -44,9 +49,13 @@ services:
       PMA_HOST: av2-db
       PMA_USER: root
       PMA_PASSWORD: ${DB_ROOT_PASSWORD}
+    depends_on:
+      - av2-db
     ports:
-      - "8888:80"
+      - "9999:80"
+    networks:
+      - test-api-produto
 
 networks:
-  laravel:
+  test-api-produto:
     driver: bridge

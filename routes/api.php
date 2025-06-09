@@ -1,30 +1,44 @@
 <?php
-// Código da Cmpra
-require_once __DIR__ . '/../app/Http/Requests/CompraRequest.php';
-require_once __DIR__ . '/../app/Models/Compra.php';
+use Psr\Http\Message\ResponseInterface as Response;
+use Psr\Http\Message\ServerRequestInterface as Request;
+use Slim\Factory\AppFactory;
 
-if ($_SERVER['REQUEST_METHOD'] === 'POST' && $_SERVER['REQUEST_URI'] === '/compras') {
-    try {
-        $input = json_decode(file_get_contents('php://input'), true);
+require __DIR__ . '/../vendor/autoload.php';
 
-        if (!$input) {
-            http_response_code(400);
-            exit;
-        }
+/**
+ * Instantiate App
+ *
+ * In order for the factory to work you need to ensure you have installed
+ * a supported PSR-7 implementation of your choice e.g.: Slim PSR-7 and a supported
+ * ServerRequest creator (included with Slim PSR-7)
+ */
+$app = AppFactory::create();
 
-        $validador = new CompraRequest();
-        $erros = $validador->validar($input);
+/**
+ * The routing middleware should be added earlier than the ErrorMiddleware
+ * Otherwise exceptions thrown from it will not be handled by the middleware
+ */
+$app->addRoutingMiddleware();
 
-        if (!empty($erros)) {
-            http_response_code(422);
-            exit;
-        }
+/**
+ * Add Error Middleware
+ *
+ * @param bool                  $displayErrorDetails -> Should be set to false in production
+ * @param bool                  $logErrors -> Parameter is passed to the default ErrorHandler
+ * @param bool                  $logErrorDetails -> Display error details in error log
+ * @param LoggerInterface|null  $logger -> Optional PSR-3 Logger
+ *
+ * Note: This middleware should be added last. It will not handle any exceptions/errors
+ * for middleware added after it.
+ */
+$errorMiddleware = $app->addErrorMiddleware(true, true, true);
 
-        $compra = new Compra();
-        $sucesso = $compra->registrar($input);
+// Define app routes
+$app->get('/hello/{name}', function (Request $request, Response $response, $args) {
+    $name = $args['name'];
+    $response->getBody()->write("Hello, $name");
+    return $response;
+});
 
-        http_response_code($sucesso ? 201 : 422);
-    } catch (Exception $e) {
-        http_response_code(400);
-    }
-}
+// Run app
+$app->run();
