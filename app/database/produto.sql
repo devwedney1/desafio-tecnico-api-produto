@@ -4,22 +4,28 @@ CREATE DATABASE IF NOT EXISTS produto;
 
 USE produto;
 
+DROP TABLE IF EXISTS produtos;
+
 CREATE TABLE IF NOT EXISTS produtos
 (
     id    CHAR(36) PRIMARY KEY, -- UUID
     nome  VARCHAR(255)   NOT NULL,
     tipo  VARCHAR(100),
-    valor DECIMAL(10, 2) NOT NULL CHECK (valor >= 0)
+    valorProduto DECIMAL(10, 2) NOT NULL CHECK (valor > 0)
 );
+
+DROP TABLE IF EXISTS compras;
 
 CREATE TABLE IF NOT EXISTS compras
 (
     id           CHAR(36) PRIMARY KEY, -- UUID
-    valorEntrada DECIMAL(10, 2) NOT NULL,
-    qtdParcelas  INT            NOT NULL CHECK (qtdParcelas >= 0),
     idProduto    CHAR(36)       NOT NULL,
+    valorEntrada DECIMAL(10, 2) NOT NULL,
+    qtdParcelas  INT            NOT NULL CHECK (qtdParcelas > 1),
     FOREIGN KEY (idProduto) REFERENCES produtos (id)
 );
+
+DROP TABLE IF EXISTS parcelas;
 
 CREATE TABLE IF NOT EXISTS parcelas
 (
@@ -30,6 +36,8 @@ CREATE TABLE IF NOT EXISTS parcelas
     jurosAplicado DECIMAL(5, 4),
     FOREIGN KEY (idCompra) REFERENCES compras (id)
 );
+
+DROP TABLE IF EXISTS taxa_juros;
 
 CREATE TABLE IF NOT EXISTS taxa_juros
 (
