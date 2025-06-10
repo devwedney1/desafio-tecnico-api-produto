@@ -2,13 +2,18 @@
 
 use Slim\App;
 use \App\Http\Controllers\Compra;
-use App\Http\Controllers\EstatisticaController;
-use App\Http\Controllers\JurosController;
+use \App\Http\Controllers\ProdutoController;
 
 /** @var App $app */
 
-$app->group('/api/', function ($group) use ($app) {
-    $group->get('compras', [Compra::class, 'index']);
-    $group->get('estatistica', [EstatisticaController::class, 'index']);
-    $group->put('juros', [JurosController::class, 'index']);
-});
+/* $app->group('/api', function ($group) use ($app) {
+    $group->get('/compras', [Compra::class, 'index']);
+    $group->post('/produtos', [ProdutoController::class, 'create']);
+}); */
+
+return function (App $app) {
+    $app->group('/api', function ($group) {
+        $group->get('/compras', [Compra::class, 'index']);
+        $group->post('/produtos', [ProdutoController::class, 'create']);
+    });
+};
