@@ -8,24 +8,20 @@ DROP TABLE IF EXISTS produtos;
 
 CREATE TABLE IF NOT EXISTS produtos
 (
-    id    CHAR(36) PRIMARY KEY, -- UUID
-    nome  VARCHAR(255)   NOT NULL,
-    tipo  VARCHAR(100),
-    valorProduto DECIMAL(10, 2) NOT NULL CHECK (valor > 0)
+    id            CHAR(36) PRIMARY KEY, -- UUID
+    nome          VARCHAR(255) NOT NULL,
+    tipo          VARCHAR(100),
+    valorProduto  DECIMAL(10, 2) NOT NULL
 );
-
-DROP TABLE IF EXISTS compras;
 
 CREATE TABLE IF NOT EXISTS compras
 (
     id           CHAR(36) PRIMARY KEY, -- UUID
     idProduto    CHAR(36)       NOT NULL,
     valorEntrada DECIMAL(10, 2) NOT NULL,
-    qtdParcelas  INT            NOT NULL CHECK (qtdParcelas > 1),
+    CONSTRAINT chk_qtdParcelas CHECK (qtdParcelas > 1),
     FOREIGN KEY (idProduto) REFERENCES produtos (id)
 );
-
-DROP TABLE IF EXISTS parcelas;
 
 CREATE TABLE IF NOT EXISTS parcelas
 (
@@ -33,11 +29,10 @@ CREATE TABLE IF NOT EXISTS parcelas
     idCompra      CHAR(36),
     numeroParcela INT,
     valorParcela  DECIMAL(10, 2),
-    jurosAplicado DECIMAL(5, 4),
-    FOREIGN KEY (idCompra) REFERENCES compras (id)
+    jurosAplicadoId DECIMAL(5, 4),
+    FOREIGN KEY (idCompra) REFERENCES compras (id),
+    FOREING KEY (juroAplicadoId) REFERENCES taxa_juros (id)
 );
-
-DROP TABLE IF EXISTS taxa_juros;
 
 CREATE TABLE IF NOT EXISTS taxa_juros
 (
