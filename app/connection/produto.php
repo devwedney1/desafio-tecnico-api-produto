@@ -1,5 +1,7 @@
 <?php
 
+namespace App\Connection;
+
 use PDO;
 use PDOException;
 use Exception;
