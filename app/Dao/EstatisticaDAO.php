@@ -1,5 +1,5 @@
 <?php
-namespace App\Models\Dao;
+namespace App\Dao;
 
 use PDO;
 use App\Models\Estatistica;
