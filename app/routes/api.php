@@ -6,7 +6,14 @@ use \App\Http\Controllers\ProdutoController;
 
 /** @var App $app */
 
-$app->group('/api', function ($group) use ($app) {
+/* $app->group('/api', function ($group) use ($app) {
     $group->get('/compras', [Compra::class, 'index']);
     $group->post('/produtos', [ProdutoController::class, 'create']);
-});
+}); */
+
+return function (App $app) {
+    $app->group('/api', function ($group) {
+        $group->get('/compras', [Compra::class, 'index']);
+        $group->post('/produtos', [ProdutoController::class, 'create']);
+    });
+};

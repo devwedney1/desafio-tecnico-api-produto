@@ -9,7 +9,7 @@ class Produto
     private $tipo;
     private $valor;
     
-    public function __construct($id = null, $nome = null, $tipo = null, $valor = null)
+    public function __construct($id, $nome, $tipo, $valor)
     {
         $this->id = $id;
         $this->nome = $nome;
@@ -71,7 +71,7 @@ class Produto
         ];
     }
     
-    public static function fromArray($data)
+    public static function fromArray(array $data)
     {
         return new self(
             $data['id'] ?? null,
