@@ -1,21 +1,49 @@
 <?php
 
+class Juros {
+    private string $id;
+    private string $dataInicial;
+    private string $dataFinal;
+    private float $juros;
 
-class Juros{
-private $dataInicial;
-private $dataFinal;
-private$juros;
+    public function __construct(string $dataInicial = '', string $dataFinal = '', float $juros = 0.0, string $id = '') {
+        $this->dataInicial = $dataInicial;
+        $this->dataFinal = $dataFinal;
+        $this->juros = $juros;
+        $this->id = $id;
+    }
 
-public function __construct($dataInicial,$dataFinal,$juros){
-    $this->dataInicial = $dataInicial;
-    $this->dataFinal = $dataFinal;
-    $this->juros = $juros;
-}
+    // Getters
+    public function getId(): string {
+        return $this->id;
+    }
 
-public function getDataInicial(){return $this->dataInicial;}
-public function getDataFinal(){return $this->dataFinal;}
-public function getJuros(){return $this->juros;}
-public function setDataInicial($dataInicial){$this->dataInicial = $dataInicial;}
-public function setDataFinal($dataFinal){$this->dataFinal = $dataFinal;}
-public function setJuros($juros){$this->juros = $juros;}
+    public function getDataInicial(): string {
+        return $this->dataInicial;
+    }
+
+    public function getDataFinal(): string {
+        return $this->dataFinal;
+    }
+
+    public function getJuros(): float {
+        return $this->juros;
+    }
+
+    // Setters
+    public function setId(string $id): void {
+        $this->id = $id;
+    }
+
+    public function setDataInicial(string $dataInicial): void {
+        $this->dataInicial = $dataInicial;
+    }
+
+    public function setDataFinal(string $dataFinal): void {
+        $this->dataFinal = $dataFinal;
+    }
+
+    public function setJuros(float $juros): void {
+        $this->juros = $juros;
+    }
 }
