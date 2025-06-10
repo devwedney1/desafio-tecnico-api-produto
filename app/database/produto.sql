@@ -4,7 +4,7 @@ CREATE DATABASE produto;
 USE produto;
 
 -- Tabela de produtos
-CREATE TABLE IF NOT EXISTS EXIprodutos
+CREATE TABLE IF NOT EXISTS produtos
 (
     id           CHAR(36) PRIMARY KEY,
     nome         VARCHAR(255)   NOT NULL,
@@ -38,8 +38,8 @@ CREATE TABLE IF NOT EXISTS compras
     idProduto    CHAR(36)       NOT NULL,
     valorEntrada DECIMAL(10, 2) NOT NULL,
     qtdParcelas  INT            NOT NULL,
-    dataCompra   DATE           NOT NULL DEFAULT CURRENT_DATE,
-    idTaxaJuros  INT            NOT NULL,
+    dataCompra   DATETIME           NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    idTaxaJuros  CHAR(36)            NOT NULL,
 
     created_at   DATETIME                DEFAULT CURRENT_TIMESTAMP,
     updated_at   DATETIME                DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
