@@ -2,10 +2,11 @@
 
 namespace App\Dao;
 
-use App\Connection\DatabaseConnection;
 use App\Model\Produto;
+use App\connection\produto\DataConnection;
 use PDO;
 use PDOException;
+use Exception;
 
 class ProdutoDao
 {
@@ -13,7 +14,11 @@ class ProdutoDao
     
     public function __construct()
     {
-        $this->connection = DatabaseConnection::getInstance()->getConnection();
+        $this->connection = \DataConnection::get_connection();
+        
+        if ($this->connection === null) {
+            throw new Exception("Não foi possível estabelecer conexão com o banco de dados.");
+        }
     }
     
     public function save(Produto $produto)
