@@ -3,6 +3,7 @@
 use Slim\App;
 use \App\Http\Controllers\Compra;
 use \App\Http\Controllers\ProdutoController;
+use \App\Http\Controllers\EstatisticaController;
 
 /** @var App $app */
 
@@ -15,5 +16,6 @@ return function (App $app) {
     $app->group('/api', function ($group) {
         $group->get('/compras', [Compra::class, 'index']);
         $group->post('/produtos', [ProdutoController::class, 'create']);
+        $group->get('estatistica', [EstatisticaController::class, 'index']);
     });
 };
