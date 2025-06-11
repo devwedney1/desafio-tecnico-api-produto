@@ -11,30 +11,44 @@ use Exception;
 class ProdutoDao
 {
     private $connection;
-    
+    private const tableName = 'produtos';
+
     public function __construct()
     {
         $this->connection = DataConnection::get_connection();
         
-        if ($this->connection === null) {
-            throw new Exception("Não foi possível estabelecer conexão com o banco de dados.");
-        }
+//        if ($this->connection === null) {
+//            throw new Exception("Não foi possível estabelecer conexão com o banco de dados.");
+//        }
     }
-    
-    public function save(Produto $produto)
+
+    /**
+     * @param Produto $produto
+     *
+     * @return bool
+     */
+    public function create(Produto $produto): bool
     {
         try {
-            $sql = "INSERT INTO produtos (id, nome, tipo, valorProduto) VALUES (?, ?, ?, ?)";
+            $this->connection->beginTransaction();
+            $sql = "INSERT INTO " . self::tableName . " (id, nome, tipo, valorProduto) 
+                    VALUES (:id, :nome, :tipo, :valor)";
             $stmt = $this->connection->prepare($sql);
+
+            $stmt->bindValue(':id', $produto->getId());
+            $stmt->bindValue(':nome', $produto->getNome());
+            $stmt->bindValue(':tipo', $produto->getTipo());
+            $stmt->bindValue(':valor', $produto->getValor());
             
-            return $stmt->execute([
-                $produto->getId(),
-                $produto->getNome(),
-                $produto->getTipo(),
-                $produto->getValor()
-            ]);
+            $stmt->execute();
+
+            $this->connection->commit();
+
+            return true;
         } catch (PDOException $e) {
-            throw new Exception("Erro ao salvar produto: " . $e->getMessage());
+            $this->connection->rollBack();
+            throw new PDOException("ERRO ao cadastrar um filme: " . $e->getMessage());
+            return false;
         }
     }
     

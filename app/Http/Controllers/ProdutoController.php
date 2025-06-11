@@ -10,56 +10,100 @@ use Exception;
 
 class ProdutoController
 {
-    private $produtoDao;
+    private ProdutoDao $produtoDao;
     
     public function __construct()
     {
         $this->produtoDao = new ProdutoDao();
     }
-    
-    public function create(Request $request, Response $response)
+
+    /**
+     * @param Request  $request
+     * @param Response $response
+     *
+     * @return Response
+     */
+    public function store(Request $request, Response $response): Response
     {
         try {
             // Pega o corpo da requisição
             $body = $request->getBody()->getContents();
-            
+
             // Verifica se o JSON é válido
             $data = json_decode($body, true);
             if (json_last_error() !== JSON_ERROR_NONE) {
-                return $response->withStatus(400); // Bad Request - JSON inválido
+                $response->getBody()->write(json_encode([
+                    'error' => 'O formato que está sendo enviado a requisição, não e permitido. São e permitido formtado Json.'
+                ]));
+                return $response->withHeader('Content-Type', 'application/json')->withStatus(400); // Bad Request - JSON inválido
             }
-            
-            // Validações obrigatórias
-            if (!$this->validateRequiredFields($data)) {
-                return $response->withStatus(422); // Unprocessable Entity
+
+            // Verifica campos obrigatórios
+            if (empty($data['id']) || empty($data['nome']) || !isset($data['valor'])) {
+                $response->getBody()->write(json_encode([
+                    'error' => 'O campos do produto como id, nome e valor são obrigatorios.'
+                ]));
+                return $response->withHeader('Content-Type', 'application/json')->withStatus(422); // Unprocessable Entity - campos obrigatórios
             }
-            
-            // Validação de valor negativo
-            if ($data['valor'] < 0) {
-                return $response->withStatus(422); // Unprocessable Entity
+
+            // Verifica formato UUID
+            if (!preg_match('/^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i', $data['id'])) {
+                $response->getBody()->write(json_encode([
+                    'error' => 'O formato do Id, não corresponde ao formatod UUID.'
+                ]));
+                return $response->withHeader('Content-Type', 'application/json')->withStatus(422); // UUID inválido
             }
-            
-            // Verifica se o ID já existe
+
+            // Verifica valor negativo
+            if (!is_numeric($data['valor']) || $data['valor'] < 0) {
+                $response->getBody()->write(json_encode([
+                    'error' => 'O valor do Produto não e permitido negativo.'
+                ]));
+                return $response->withHeader('Content-Type', 'application/json')->withStatus(422); // Valor negativo
+            }
+
+            // Verifica se ID já existe no banco
             if ($this->produtoDao->existsById($data['id'])) {
-                return $response->withStatus(422); // Unprocessable Entity - ID já existe
+                $response->getBody()->write(json_encode([
+                    'error' => 'Produto com este ID já existe.'
+                ]));
+
+                return $response->withHeader('Content-Type', 'application/json')->withStatus(422);
             }
-            
-            // Cria o produto
+
+            // Cria produto
             $produto = new Produto(
                 $data['id'],
                 $data['nome'],
                 $data['tipo'] ?? null,
-                $data['valor']
+                (float) $data['valor']
             );
-            
+
             // Salva no banco
-            $this->produtoDao->save($produto);
-            
-            return $response->withStatus(201); // Created
-            
+            $produtoCriado = $this->produtoDao->create($produto);
+
+            if (!$produtoCriado) {
+                $response->getBody()->write(json_encode([
+                    'error' => 'Problema no processamento de criar o produto.'
+                ]));
+
+                return $response->withHeader('Content-Type', 'application/json')->withStatus(400); // Falha ao salvar
+            }
+
+            $response->getBody()->write(json_encode([
+                'sucess' => 'Produto criado'
+            ]));
+
+            return $response->withHeader('Content-Type', 'application/json')->withStatus(201); // Created
+
         } catch (Exception $e) {
-            // Log do erro seria interessante aqui
-            return $response->withStatus(500); // Internal Server Error
+            error_log($e->getMessage());
+
+            $response->getBody()->write(json_encode([
+                'error' => 'Problema não esperado'
+            ]));
+
+            return $response->withHeader('Content-Type', 'application/json')->withStatus(400); // Internal Server Error
         }
     }
     

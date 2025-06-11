@@ -4,10 +4,10 @@ namespace App\Model;
 
 class Produto
 {
-    private $id;
-    private $nome;
-    private $tipo;
-    private $valor;
+    private string $id;
+    private string $nome;
+    private string $tipo;
+    private float $valor;
     
     public function __construct($id, $nome, $tipo, $valor)
     {
@@ -17,45 +17,45 @@ class Produto
         $this->valor = $valor;
     }
     
-    public function getId()
+    public function getId(): string
     {
         return $this->id;
     }
     
-    public function setId($id)
+    public function setId($id): static
     {
         $this->id = $id;
         return $this;
     }
     
-    public function getNome()
+    public function getNome(): string
     {
         return $this->nome;
     }
     
-    public function setNome($nome)
+    public function setNome($nome): static
     {
         $this->nome = $nome;
         return $this;
     }
     
-    public function getTipo()
+    public function getTipo(): string
     {
         return $this->tipo;
     }
     
-    public function setTipo($tipo)
+    public function setTipo($tipo): static
     {
         $this->tipo = $tipo;
         return $this;
     }
     
-    public function getValor()
+    public function getValor(): float
     {
         return $this->valor;
     }
     
-    public function setValor($valor)
+    public function setValor($valor): static
     {
         $this->valor = $valor;
         return $this;
