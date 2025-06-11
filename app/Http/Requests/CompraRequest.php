@@ -13,7 +13,7 @@ class CompraRequest {
             $erros[] = "Campos numéricos inválidos";
         }
 
-        if ($data['qtdParcelas'] < 0) {
+        if ($data['qtdParcelas'] <= 0) {
             $erros[] = "Quantidade de parcelas inválida";
         }
 
