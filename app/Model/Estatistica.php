@@ -1,4 +1,5 @@
 <?php
+
 namespace App\Model;
 
 class Estatistica
@@ -9,7 +10,7 @@ class Estatistica
     private float $sumTx;
     private float $avgTx;
 
-    public function __construct(int $count, float $sum, float $avg, float $sumTx, float $avgTx)
+    public function __construct (int $count, float $sum, float $avg, float $sumTx, float $avgTx)
     {
         $this->count = $count;
         $this->sum = $sum;
@@ -18,27 +19,42 @@ class Estatistica
         $this->avgTx = $avgTx;
     }
 
-    public function getCount(): int
+    /**
+     * @return int
+     */
+    public function getCount (): int
     {
         return $this->count;
     }
 
-    public function getSum(): float
+    /**
+     * @return float
+     */
+    public function getSum (): float
     {
         return $this->sum;
     }
 
-    public function getAvg(): float
+    /**
+     * @return float
+     */
+    public function getAvg (): float
     {
         return $this->avg;
     }
 
-    public function getSumTx(): float
+    /**
+     * @return float
+     */
+    public function getSumTx (): float
     {
         return $this->sumTx;
     }
 
-    public function getAvgTx(): float
+    /**
+     * @return float
+     */
+    public function getAvgTx (): float
     {
         return $this->avgTx;
     }
