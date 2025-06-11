@@ -1,5 +1,8 @@
 <?php
 
+namespace App\DAO;
+use PDO;
+
 use App\Connection\DataConnection;
 use App\Model\taxaJuros;
 
@@ -12,19 +15,32 @@ class JurosDAO {
     }
 
     public function salvarJuros(taxaJuros $juros) {
-        $stmt = $this->conn->prepare(
-            'UPDATE taxa_juros 
-             SET dataInicio = ?, dataFinal = ?, taxa = ?, updated_at = NOW() 
-             WHERE id = ?'
-        );
+    $stmt = $this->conn->prepare(
+        'INSERT INTO taxa_juros (id, dataInicio, dataFinal, taxa, updated_at) 
+         VALUES (?, ?, ?, ?, NOW())'
+    );
 
-        $stmt->execute([
-            $juros->getDataInicial(),
-            $juros->getDataFinal(),
-            $juros->getJuros(),
-            $juros->getId()
-        ]);
-    }
+    $stmt->execute([
+        $juros->getId(),
+        $juros->getDataInicial(),
+        $juros->getDataFinal(),
+        $juros->getJuros()
+    ]);
+}
+
+    public function buscarTaxaJurosAtual() {
+    $stmt = $this->conn->prepare(
+        'SELECT id, taxa 
+         FROM taxa_juros 
+         WHERE CURDATE() BETWEEN dataInicio AND dataFinal 
+           AND deleted_at IS NULL 
+         ORDER BY dataInicio DESC 
+         LIMIT 1'
+    );
+    $stmt->execute();
+    return $stmt->fetch(PDO::FETCH_ASSOC);
+}
+
 
     public function mostrarJuros() {
         $stmt = $this->conn->prepare(
