@@ -2,15 +2,22 @@
 namespace App\Dao;
 
 use PDO;
-use App\Models\Estatistica;
+use App\Model\Estatistica;
+use App\Connection\DataConnection;
+use PDOException;
+use Exception;
 
 class EstatisticaDAO
 {
-    private PDO $conn;
-
-    public function __construct(PDO $conn)
+    private $connection;
+    
+    public function __construct()
     {
-        $this->conn = $conn;
+        $this->connection = DataConnection::get_connection();
+        
+        //if ($this->connection === null) {
+        //    throw new Exception("Não foi possível estabelecer conexão com o banco de dados.");
+        //}
     }
 
     public function calcularEstatisticas(): Estatistica
@@ -26,7 +33,7 @@ class EstatisticaDAO
         ";
 
         try {
-            $stmt = $this->conn->prepare($sql);
+            $stmt = $this->connection->prepare($sql);
             $stmt->execute();
             $row = $stmt->fetch(PDO::FETCH_ASSOC);
 
