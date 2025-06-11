@@ -6,6 +6,7 @@ use App\Dao\ProdutoDao;
 use App\Model\Produto;
 use Psr\Http\Message\ResponseInterface as Response;
 use Psr\Http\Message\ServerRequestInterface as Request;
+use Ramsey\Uuid\Uuid;
 use Exception;
 
 class ProdutoController
@@ -39,20 +40,13 @@ class ProdutoController
             }
 
             // Verifica campos obrigatórios
-            if (empty($data['id']) || empty($data['nome']) || !isset($data['valor'])) {
+            if (empty($data['nome']) || !isset($data['valor'])) {
                 $response->getBody()->write(json_encode([
-                    'error' => 'O campos do produto como id, nome e valor são obrigatorios.'
+                    'error' => 'Os campos do produto como nome e valor são obrigatorios.'
                 ]));
                 return $response->withHeader('Content-Type', 'application/json')->withStatus(422); // Unprocessable Entity - campos obrigatórios
             }
 
-            // Verifica formato UUID
-            if (!preg_match('/^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i', $data['id'])) {
-                $response->getBody()->write(json_encode([
-                    'error' => 'O formato do Id, não corresponde ao formatod UUID.'
-                ]));
-                return $response->withHeader('Content-Type', 'application/json')->withStatus(422); // UUID inválido
-            }
 
             // Verifica valor negativo
             if (!is_numeric($data['valor']) || $data['valor'] < 0) {
@@ -62,18 +56,10 @@ class ProdutoController
                 return $response->withHeader('Content-Type', 'application/json')->withStatus(422); // Valor negativo
             }
 
-            // Verifica se ID já existe no banco
-            if ($this->produtoDao->existsById($data['id'])) {
-                $response->getBody()->write(json_encode([
-                    'error' => 'Produto com este ID já existe.'
-                ]));
-
-                return $response->withHeader('Content-Type', 'application/json')->withStatus(422);
-            }
-
+            $id = Uuid::uuid4()->toString();
             // Cria produto
             $produto = new Produto(
-                $data['id'],
+                $id,
                 $data['nome'],
                 $data['tipo'] ?? null,
                 (float) $data['valor']
