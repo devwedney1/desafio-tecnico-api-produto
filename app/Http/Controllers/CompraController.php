@@ -6,6 +6,7 @@ use App\Dao\CompraDAO;
 use App\DAO\JurosDAO;
 use App\Http\Resources\CompraResource;
 use App\Model\Compra;
+use App\Utils\Uuid\GeradorUuid;
 use Psr\Http\Message\ResponseInterface as Response;
 use Psr\Http\Message\ServerRequestInterface as Request;
 
@@ -24,8 +25,6 @@ Class CompraController
     {
         try {
             $dataCompraGet = $this->compraDAO->todasComprasGet();
-
-            var_dump($dataCompraGet);
 
             if(!$dataCompraGet){
                 $response->getBody()->write(json_encode([
@@ -65,7 +64,7 @@ Class CompraController
                 return $response->withStatus(400); // Estrutura incorreta
             }
 
-            $compraDao = new ComprarDAO();
+            $compraDao = new CompraDAO();
             $jurosDao = new JurosDAO();
 
             $valorProduto = $compraDao->buscarValorProduto($idProduto);
@@ -87,7 +86,8 @@ Class CompraController
             $valorFinal = $valorFinanciado * pow(1 + $taxa, $qtdParcelas);
             $vlrParcela = round($valorFinal / $qtdParcelas, 2);
 
-            $idCompra = Uuid::uuid4()->toString();
+            $gerarVariavel = new GeradorUuid();
+            $idCompra = $gerarVariavel->gerarUuidPrimaryKey();
 
             $compra = new Compra($idCompra, $idProduto, $valorEntrada, $qtdParcelas, $vlrParcela);
             $compra->setJurosAplicado($taxa);
@@ -101,8 +101,11 @@ Class CompraController
                 $dataVencimento = clone $dataAtual;
                 $dataVencimento->modify("+{$i} months");
 
+                $gerarVariavel = new GeradorUuid();
+                $id = $gerarVariavel->gerarUuidPrimaryKey();
+
                 $parcelas[] = [
-                    'id' => Uuid::uuid4()->toString(),
+                    'id' => $id,
                     'idCompra' => $idCompra,
                     'numeroParcela' => $i,
                     'valorParcela' => $vlrParcela,
@@ -114,7 +117,7 @@ Class CompraController
 
             return $response->withStatus(201); // Sucesso sem corpo
 
-        } catch (Exception $e) {
+        } catch (\Exception $e) {
             return $response->withStatus(500); // Erro interno
         }
     }

@@ -27,19 +27,24 @@ class CompraDAO
     {
         try {
             $sql = "
-        SELECT
-            compras.id AS idCompra,
-            produtos.nome AS nomeProduto,
-            produtos.tipo AS tipoProduto,
-            produtos.valorProduto AS valorProduto,
-            compras.valorEntrada AS valorEntrada,
-            compras.qtdParcelas AS qtdParcelas,
-            parcelas.valorParcela AS valorParcela,
-            taxa_juros.taxa AS taxaJuros
-        FROM parcelas
-        INNER JOIN compras ON parcelas.idCompra = compras.id
-        INNER JOIN produtos ON compras.idProduto = produtos.id
-        INNER JOIN taxa_juros ON compras.idTaxaJuros = taxa_juros.id
+        SELECT DISTINCT
+            c.id AS idCompra,
+            p.nome AS nomeProduto,
+            p.tipo AS tipoProduto,
+            p.valorProduto AS valorProduto,
+            c.valorEntrada AS valorEntrada,
+            c.qtdParcelas AS qtdParcelas,
+            parc.valorParcela AS valorParcela,
+            tj.taxa AS taxaJuros
+        FROM compras c
+        LEFT JOIN produtos p ON c.idProduto = p.id
+        LEFT JOIN taxa_juros tj ON c.idTaxaJuros = tj.id
+        LEFT JOIN (
+            SELECT idCompra, valorParcela 
+            FROM parcelas 
+            WHERE numeroParcela = 1
+        ) parc ON parc.idCompra = c.id
+        WHERE c.deleted_at IS NULL
     ";
 
             $stmt = $this->connection->prepare($sql);
@@ -104,7 +109,7 @@ class CompraDAO
         $sql = "INSERT INTO compras (id, idProduto, valorEntrada, qtdParcelas, idTaxaJuros)
             VALUES (:id, :idProduto, :valorEntrada, :qtdParcelas, :idTaxaJuros)";
 
-        $stmt = $this->conn->prepare($sql);
+        $stmt = $this->connection->prepare($sql);
         $stmt->bindValue(':id', $compra->getId());
         $stmt->bindValue(':idProduto', $compra->getIdProduto());
         $stmt->bindValue(':valorEntrada', $compra->getValorEntrada());
