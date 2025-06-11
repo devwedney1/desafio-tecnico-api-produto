@@ -15,7 +15,8 @@ use \App\Http\Controllers\EstatisticaController;
 return function (App $app) {
     $app->group('/api', function ($group) {
         $group->get('/compras', [Compra::class, 'index']);
-        $group->post('/produtos', [ProdutoController::class, 'create']);
+        $group->post('/produtos', [ProdutoController::class, 'store']);
         $group->get('estatistica', [EstatisticaController::class, 'index']);
+
     });
 };
