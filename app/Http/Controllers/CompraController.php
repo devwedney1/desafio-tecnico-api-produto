@@ -15,15 +15,14 @@ Class CompraController
 
     public function __construct ()
     {
-        $this->compraDAO = new CompraDao();
-        $this->compraResource = new compraResource();
+        $this->compraDAO = new CompraDAO();
+        $this->compraResource = new CompraResource();
     }
     public function index (Request $request, Response $response): Response
     {
         try {
             $dataCompraGet = $this->compraDAO->todasComprasGet();
 
-            var_dump($dataCompraGet);
 
             if(!$dataCompraGet){
                 $response->getBody()->write(json_encode([

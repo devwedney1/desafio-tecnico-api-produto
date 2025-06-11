@@ -1,8 +1,6 @@
 <?php
 namespace App\Model;
 
-use Ramsey\Uuid\Uuid;
-
 class Compra
 {
     private string $id;
@@ -13,7 +11,7 @@ class Compra
     private ?string $idTaxaJuros = null;
     private ?float $jurosAplicado = null;
 
-    public function __construct($id, string $idProduto, float $valorEntrada, int $qtdParcelas, float $vlrParcela)
+    public function __construct(string $id, string $idProduto, float $valorEntrada, int $qtdParcelas, float $vlrParcela)
     {
         $this->id = $id;
         $this->idProduto = $idProduto;
@@ -25,6 +23,7 @@ class Compra
     public function getId(): string {
         return $this->id;
 }
+    public function setId(string $id): void { $this->id = $id; }
 
     public function getIdProduto(): string { return $this->idProduto; }
     public function setIdProduto(string $idProduto): void { $this->idProduto = $idProduto; }

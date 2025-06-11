@@ -1,21 +1,36 @@
 <?php
 
 namespace App\Http\Resources;
-
-class CompraResource {
+Class CompraResource
+{
     public static function make($data): false|string
     {
+        // Se for uma lista de compras
+        if (is_array($data) && isset($data[0])) {
+            $compras = array_map(function($compra) {
+                return [
+                    'idCompra'      => (string) ($compra['id']              ?? ''),
+                    'nomeProduto'   => (string) ($compra['nomeProduto']     ?? ''),
+                    'tipoProduto'   => (int)    ($compra['tipoProduto']     ?? 0),
+                    'valorEntrada'  => (float)  ($compra['valorEntrada']    ?? 0),
+                    'qtdParcelas'   => (int)    ($compra['qtdParcelas']     ?? 0),
+                    'valorParcelas' => (float)  ($compra['valor_parcela']   ?? 0),
+                    'taxaJuros'     => (float)  ($compra['taxaJuros']       ?? 0),
+                ];
+            }, $data);
+            return json_encode($compras);
+        }
 
-        $compras =[
-            'idCompra' => (string) $data['id'],
-            'nomeProduto' => (string) $data['valorEntrada'],
-            'tipoProduto' => (int) $data['qtdParcelas'],
-            'valorEntrada' => $data['idProduto'],
-            'qtdParcelas' => (float) $data['juros_aplicado'],
-            'valorParcelas' => (float) $data['valor_parcela'],
-            'taxaJuros' => (float) $data['taxaJuros'],
+        // Se for uma compra só
+        $compra = [
+            'idCompra'      => (string) ($data['id']              ?? ''),
+            'nomeProduto'   => (string) ($data['nomeProduto']     ?? ''),
+            'tipoProduto'   => (int)    ($data['tipoProduto']     ?? 0),
+            'valorEntrada'  => (float)  ($data['valorEntrada']    ?? 0),
+            'qtdParcelas'   => (int)    ($data['qtdParcelas']     ?? 0),
+            'valorParcelas' => (float)  ($data['valor_parcela']   ?? 0),
+            'taxaJuros'     => (float)  ($data['taxaJuros']       ?? 0),
         ];
-
-        return json_encode($compras);
+        return json_encode($compra);
     }
 }
