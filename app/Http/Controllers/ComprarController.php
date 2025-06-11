@@ -3,14 +3,12 @@
 namespace App\Http\Controllers;
 
 use App\DAO\ComprarDAO;
-use App\DAO\ProdutoDao;
 use App\DAO\JurosDAO;
 use App\Model\Compra;
 use Psr\Http\Message\ResponseInterface as Response;
 use Psr\Http\Message\ServerRequestInterface as Request;
 use Exception;
 use Ramsey\Uuid\Uuid;
-
 
 class ComprarController
 {
@@ -19,13 +17,16 @@ class ComprarController
         try {
             $data = $request->getParsedBody();
 
+            if (!is_array($data)) {
+                return $response->withStatus(400); // JSON inválido
+            }
+
             $idProduto = $data['idProduto'] ?? '';
             $valorEntrada = (float)($data['valorEntrada'] ?? 0);
             $qtdParcelas = (int)($data['qtdParcelas'] ?? 0);
 
             if (!$idProduto || $valorEntrada < 0 || $qtdParcelas <= 0) {
-                $response->getBody()->write(json_encode(['erro' => 'Dados inválidos.']));
-                return $response->withStatus(400)->withHeader('Content-Type', 'application/json');
+                return $response->withStatus(400); // Estrutura incorreta
             }
 
             $compraDao = new ComprarDAO();
@@ -33,26 +34,22 @@ class ComprarController
 
             $valorProduto = $compraDao->buscarValorProduto($idProduto);
             if ($valorProduto <= 0) {
-                $response->getBody()->write(json_encode(['erro' => 'Produto não encontrado.']));
-                return $response->withStatus(422)->withHeader('Content-Type', 'application/json');
+                return $response->withStatus(422); // Produto inválido
             }
 
             $valorFinanciado = $valorProduto - $valorEntrada;
             if ($valorFinanciado <= 0) {
-                $response->getBody()->write(json_encode(['erro' => 'Valor de entrada maior ou igual ao valor do produto.']));
-                return $response->withStatus(422)->withHeader('Content-Type', 'application/json');
+                return $response->withStatus(422); // Entrada inválida
             }
 
             $juros = $jurosDao->mostrarJuros();
             if (!$juros) {
-                $response->getBody()->write(json_encode(['erro' => 'Nenhuma taxa de juros válida encontrada.']));
-                return $response->withStatus(422)->withHeader('Content-Type', 'application/json');
+                return $response->withStatus(422); // Sem taxa de juros
             }
 
             $taxa = $juros->getJuros();
             $valorFinal = $valorFinanciado * pow(1 + $taxa, $qtdParcelas);
-            $vlrParcela = round($valorFinal / $qtdParcelas, 2); // já arredonda aqui
-
+            $vlrParcela = round($valorFinal / $qtdParcelas, 2);
 
             $idCompra = Uuid::uuid4()->toString();
 
@@ -69,29 +66,20 @@ class ComprarController
                 $dataVencimento->modify("+{$i} months");
 
                 $parcelas[] = [
-                    'id' => Uuid::uuid4()->toString(), // <-- Agora está criando um ID único
+                    'id' => Uuid::uuid4()->toString(),
                     'idCompra' => $idCompra,
                     'numeroParcela' => $i,
-                    'valorParcela' => round($vlrParcela, 2),
+                    'valorParcela' => $vlrParcela,
                     'dataVencimento' => $dataVencimento->format('Y-m-d')
                 ];
             }
 
             $compraDao->inserirParcelas($parcelas);
 
-            $response->getBody()->write(json_encode([
-                'mensagem' => 'Compra realizada com sucesso.',
-                'idCompra' => $idCompra,
-                'valorParcela' => round($vlrParcela, 2),
-                'totalComJuros' => round($valorFinal, 2),
-                'jurosAplicado' => $taxa
-            ]));
-
-            return $response->withStatus(201)->withHeader('Content-Type', 'application/json');
+            return $response->withStatus(201); // Sucesso sem corpo
 
         } catch (Exception $e) {
-            $response->getBody()->write(json_encode(['erro' => $e->getMessage()]));
-            return $response->withStatus(500)->withHeader('Content-Type', 'application/json');
+            return $response->withStatus(500); // Erro interno
         }
     }
 }
