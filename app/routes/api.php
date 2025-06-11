@@ -17,5 +17,6 @@ return function (App $app) {
         $group->get('/compras', [CompraController::class, 'index']);
         $group->post('/produtos', [ProdutoController::class, 'store']);
         $group->get('/estatistica', [EstatisticaController::class, 'index']);
+        $group->post('/comprar', \App\Http\Controllers\Compra::class . ':store');
     });
 };

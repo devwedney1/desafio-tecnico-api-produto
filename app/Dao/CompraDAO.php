@@ -68,4 +68,47 @@ Class CompraDAO
 
     }
 
+        public function compraExiste(string $id): bool
+    {
+        $stmt = $this->connection->prepare("SELECT COUNT(*) FROM compras WHERE id = ?");
+        $stmt->execute([$id]);
+        return $stmt->fetchColumn() > 0;
+    }
+
+    public function buscarProduto(string $idProduto): ?array
+    {
+        $stmt = $this->connection->prepare("SELECT valorProduto FROM produtos WHERE id = ?");
+        $stmt->execute([$idProduto]);
+        return $stmt->fetch() ?: null;
+    }
+
+    public function buscarTaxaMaisRecente(): ?array
+    {
+        $stmt = $this->connection->query("SELECT id, taxa FROM taxa_juros WHERE deleted_at IS NULL ORDER BY dataFinal DESC LIMIT 1");
+        return $stmt->fetch() ?: null;
+    }
+
+    public function buscarTaxaZero(): ?array
+    {
+        $stmt = $this->connection->query("SELECT id FROM taxa_juros WHERE taxa = 0 ORDER BY dataFinal DESC LIMIT 1");
+        return $stmt->fetch() ?: null;
+    }
+
+    public function inserirCompra(string $id, string $idProduto, float $valorEntrada, int $qtdParcelas, string $idTaxa): void
+    {
+        $stmt = $this->connection->prepare("
+            INSERT INTO compras (id, idProduto, valorEntrada, qtdParcelas, idTaxaJuros)
+            VALUES (?, ?, ?, ?, ?)
+        ");
+        $stmt->execute([$id, $idProduto, $valorEntrada, $qtdParcelas, $idTaxa]);
+    }
+
+    public function inserirParcela(string $idCompra, int $numero, float $valor, string $vencimento): void
+    {
+        $stmt = $this->connection->prepare("
+            INSERT INTO parcelas (id, idCompras, numeroParcela, valorParcela, dataVencimento)
+            VALUES (UUID(), ?, ?, ?, ?)
+        ");
+        $stmt->execute([$idCompra, $numero, $valor, $vencimento]);
+    }
 }

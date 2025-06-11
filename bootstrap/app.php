@@ -2,6 +2,8 @@
 
 use Slim\Factory\AppFactory;
 
+use Slim\Middleware\BodyParsingMiddleware;
+
 require_once __DIR__ . '/../vendor/autoload.php';
 
 $app = AppFactory::create();
