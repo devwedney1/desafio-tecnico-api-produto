@@ -1,9 +1,9 @@
 <?php
 
 return [
-    'host' => '127.0.0.1',
+    'host' => 'av2-db',
     'dbname' => 'produto',
-    'user' => 'root',
-    'password' => '',
+    'user' => 'user',
+    'password' => 'pass',
 
 ];

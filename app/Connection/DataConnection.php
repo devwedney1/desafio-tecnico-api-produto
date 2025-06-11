@@ -1,5 +1,11 @@
 <?php
 
+namespace App\Connection;
+
+use PDO;
+use PDOException;
+use Exception;
+
 class DataConnection
 {
     private static $instance;
@@ -17,8 +23,8 @@ class DataConnection
                     "mysql:host={$config['host']};dbname={$config['dbname']};charset=utf8",
                     $config['user'],
                     $config['password']
-                ); self::$instance->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
-
+                );
+                self::$instance->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
             }
             return self::$instance;
         } catch (PDOException $e) {

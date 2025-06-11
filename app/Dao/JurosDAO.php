@@ -1,11 +1,7 @@
 <?php
 
-namespace App\Dao;
-
-use PDO;
 use App\Connection\DataConnection;
 use App\Model\taxaJuros;
-
 
 class JurosDAO {
 

@@ -10,6 +10,7 @@ $app = AppFactory::create();
 $app->addBodyParsingMiddleware();
 
 // Middleware para lidar com erros
+
 $app->addErrorMiddleware(true, true, true);
 
 // Inclusão de rotas separadas
