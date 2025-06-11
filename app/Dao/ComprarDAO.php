@@ -15,21 +15,39 @@ class ComprarDAO
     {
         $this->conn = DataConnection::get_connection();
     }
-// ...existing code...
     public function inserirParcelas(array $parcelas)
     {
-        $stmt = $this->conn->prepare(
-            'INSERT INTO parcelas (id, idcompra, numeroParcela, valorParcela, dataVencimento) VALUES (?, ?, ?, ?, ?)'
-        );
-        
-        foreach ($parcelas as $parcela) {   
+        try {
+            $this->conn->beginTransaction();
 
-            $stmt->bindValue(1, $parcela['id']);
-            $stmt->bindValue(2, $parcela['idCompra']);
-            $stmt->bindValue(3, $parcela['numeroParcela'], PDO::PARAM_INT);
-            $stmt->bindValue(4, number_format($parcela['valorParcela'], 2, '.', ''), PDO::PARAM_STR);
-            $stmt->bindValue(5, $parcela['dataVencimento']);
-            $stmt->execute();
+            $stmt = $this->conn->prepare(
+                'INSERT INTO parcelas (id, idCompra, numeroParcela, valorParcela, dataVencimento) 
+                 VALUES (:id, :idCompra, :numeroParcela, :valorParcela, :dataVencimento)'
+            );
+            
+            foreach ($parcelas as $parcela) {
+                if (!isset($parcela['id'], $parcela['idCompra'], $parcela['numeroParcela'], 
+                          $parcela['valorParcela'], $parcela['dataVencimento'])) {
+                    throw new PDOException("Dados da parcela incompletos");
+                }
+
+                $stmt->bindValue(':id', $parcela['id']);
+                $stmt->bindValue(':idCompra', $parcela['idCompra']);
+                $stmt->bindValue(':numeroParcela', $parcela['numeroParcela'], PDO::PARAM_INT);
+                $stmt->bindValue(':valorParcela', number_format($parcela['valorParcela'], 2, '.', ''), PDO::PARAM_STR);
+                $stmt->bindValue(':dataVencimento', $parcela['dataVencimento']);
+                
+                if (!$stmt->execute()) {
+                    throw new PDOException("Erro ao inserir parcela: " . implode(", ", $stmt->errorInfo()));
+                }
+            }
+
+            $this->conn->commit();
+            return true;
+
+        } catch (PDOException $e) {
+            $this->conn->rollBack();
+            throw new PDOException("Erro ao inserir parcelas: " . $e->getMessage());
         }
     }
 
