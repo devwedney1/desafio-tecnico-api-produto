@@ -56,10 +56,9 @@ class ProdutoController
                 return $response->withHeader('Content-Type', 'application/json')->withStatus(422); // Valor negativo
             }
 
-            $id = Uuid::uuid4()->toString();
             // Cria produto
             $produto = new Produto(
-                $id,
+                $data['id'],
                 $data['nome'],
                 $data['tipo'] ?? null,
                 (float) $data['valor']
@@ -67,7 +66,6 @@ class ProdutoController
 
             // Salva no banco
             $produtoCriado = $this->produtoDao->create($produto);
-
             if (!$produtoCriado) {
                 $response->getBody()->write(json_encode([
                     'error' => 'Problema no processamento de criar o produto.'
