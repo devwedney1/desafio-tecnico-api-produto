@@ -2,28 +2,47 @@
 
 namespace App\Http\Controllers;
 
-use App\Model\Parcela;
-use App\Model\Produto;
-use Compra;
+use App\Dao\CompraDAO;
+use App\Http\Resources\CompraResource;
 use Psr\Http\Message\ResponseInterface as Response;
 use Psr\Http\Message\ServerRequestInterface as Request;
-use taxaJuros;
+
 
 Class CompraController
 {
-    private Compra $compra;
-    public function __construct (Produto $produto, Compra $compra, Parcela $parcela, taxaJuros $taxaJuros)
+    private CompraDAO $compraDAO;
+    private CompraResource $compraResource;
+
+    public function __construct ()
     {
-        $this->compra = $compra;
+        $this->compraDAO = new CompraDao();
+        $this->compraResource = new compraResource();
     }
-    public function index (Response $response)
+    public function index (Request $request, Response $response): Response
     {
         try {
+            $dataCompraGet = $this->compraDAO->todasComprasGet();
+
+            var_dump($dataCompraGet);
+
+            if(!$dataCompraGet){
+                $response->getBody()->write(json_encode([
+                    'error' => 'A API não encontrou compras'
+                ]));
+                return $response->withHeader('Content-Type', 'application/json')->withStatus(404);
+            }
+
+            $dataCompraGetTratadoSucess = $this->compraResource->make($dataCompraGet);
+
+            $response->getBody()->write(($dataCompraGetTratadoSucess));
+
+            return $response->withHeader('Content-Type', 'application/json')->withStatus(200);
 
         } catch (\Throwable $th) {
-
+            $response->getBody()->write(json_encode([
+                'error' => 'A API não encontrou compras, problema não esperado'
+            ]));
+            return $response->withHeader('Content-Type', 'application/json')->withStatus(404); // Bad Request - JSON inválido
         }
-        $response->getBody()->write(json_encode());
-        return $response->withHeader('Content-Type', 'application/json');
     }
 }

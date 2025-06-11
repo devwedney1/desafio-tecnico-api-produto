@@ -1,7 +1,7 @@
 <?php
 
+use App\Http\Controllers\CompraController;
 use Slim\App;
-use \App\Http\Controllers\Compra;
 use \App\Http\Controllers\ProdutoController;
 use \App\Http\Controllers\EstatisticaController;
 
@@ -14,7 +14,7 @@ use \App\Http\Controllers\EstatisticaController;
 
 return function (App $app) {
     $app->group('/api', function ($group) {
-        $group->get('/compras', [Compra::class, 'index']);
+        $group->get('/compras', [CompraController::class, 'index']);
         $group->post('/produtos', [ProdutoController::class, 'store']);
         $group->get('/estatistica', [EstatisticaController::class, 'index']);
     });

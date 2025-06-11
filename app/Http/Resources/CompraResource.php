@@ -1,7 +1,10 @@
 <?php
 
+namespace App\Http\Resources;
+
 class CompraResource {
-    public static function make($data) {
+    public static function make($data): false|string
+    {
 
         $compras =[
             'idCompra' => (string) $data['id'],
