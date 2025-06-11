@@ -2,13 +2,15 @@
 
 namespace App\Http\Controllers;
 
+use App\Model\Parcela;
+use App\Model\Produto;
 use Psr\Http\Message\ResponseInterface as Response;
 use Psr\Http\Message\ServerRequestInterface as Request;
 
-Class Compra
+Class CompraController
 {
     private Compra $compra;
-    public function __construct (Compra $compra)
+    public function __construct (Produto $produto, Compra $compra, Parcela $parcela, )
     {
         $this->compra = $compra;
     }

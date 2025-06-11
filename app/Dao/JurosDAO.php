@@ -1,6 +1,6 @@
 <?php
 
-require_once 'JurosModel.php';
+require_once 'taxaJuros.php';
 require_once '../connection/produto.php';
 
 class JurosDAO {

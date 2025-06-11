@@ -9,8 +9,4 @@ Class CompraDAO
 
     }
 
-    public function get()
-    {
-
-    }
 }
