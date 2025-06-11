@@ -36,7 +36,7 @@ CREATE TABLE IF NOT EXISTS compras
 (
     id           CHAR(36) PRIMARY KEY,
     idProduto    CHAR(36)       NOT NULL,
-    valorEntrada DECIMAL(10, 2) NOT NULL,
+    valorEntrada DECIMAL(15, 2) NOT NULL,
     qtdParcelas  INT            NOT NULL,
     dataCompra   DATETIME           NOT NULL DEFAULT CURRENT_TIMESTAMP,
     idTaxaJuros  CHAR(36)            NOT NULL,
@@ -54,7 +54,7 @@ CREATE TABLE IF NOT EXISTS compras
 -- Tabela de parcelas
 CREATE TABLE IF NOT EXISTS parcelas
 (
-    id              CHAR(36) PRIMARY KEY,
+    id             CHAR(36) PRIMARY KEY,
     idCompra       CHAR(36)       NOT NULL,
     numeroParcela  INT            NOT NULL,
     valorParcela   DECIMAL(10, 2) NOT NULL,

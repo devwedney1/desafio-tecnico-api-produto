@@ -2,10 +2,10 @@
 
 namespace App\Http\Controllers;
 
-use App\DAO\ComprasDAO;
 use App\DAO\JurosDAO;
 use App\Model\taxaJuros;
-
+use DateTime;
+use Exception;
 use Psr\Http\Message\ResponseInterface as Response;
 use Psr\Http\Message\ServerRequestInterface as Request;
 
@@ -15,74 +15,66 @@ class JurosController
     {
         $dados = $request->getParsedBody();
 
-        if (!isset($dados['dataInicio'], $dados['dataFinal'])) {
-            $response->getBody()->write(json_encode(["erro" => "Parâmetros obrigatórios ausentes."]));
-            return $response->withStatus(400)->withHeader('Content-Type', 'application/json');
+        // JSON inválido ou parâmetros ausentes → 400 sem corpo
+        if (!isset($dados['dataInicio']) || !isset($dados['dataFinal'])) {
+            return $response->withStatus(400);
         }
 
         try {
-            $dataInicio = new \DateTime($dados['dataInicio']);
-            $dataFinal = new \DateTime($dados['dataFinal']);
-            $hoje = new \DateTime();
-            $limiteInferior = new \DateTime('2010-01-01');
+            $dataInicio = new DateTime($dados['dataInicio']);
+            $dataFinal = new DateTime($dados['dataFinal']);
+            $hoje = new DateTime();
+            $limiteInicio = new DateTime('2010-01-01');
 
-            if ($dataFinal < $dataInicio || $dataFinal > $hoje || $dataInicio < $limiteInferior) {
-                $response->getBody()->write(json_encode(["erro" => "Datas inválidas."]));
-                return $response->withStatus(422)->withHeader('Content-Type', 'application/json');
+            if ($dataFinal < $dataInicio || $dataFinal > $hoje || $dataInicio < $limiteInicio) {
+                return $response->withStatus(400);
             }
 
-            $dataInicioFormat = $dataInicio->format('d/m/Y');
-            $dataFinalFormat = $dataFinal->format('d/m/Y');
-
-            $url = "https://api.bcb.gov.br/dados/serie/bcdata.sgs.11/dados?formato=json&dataInicial={$dataInicioFormat}&dataFinal={$dataFinalFormat}";
+            $url = "https://api.bcb.gov.br/dados/serie/bcdata.sgs.11/dados?formato=json&dataInicial="
+                 . $dataInicio->format('d/m/Y') . "&dataFinal=" . $dataFinal->format('d/m/Y');
 
             $ch = curl_init($url);
             curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
             curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
-            $responseApi = curl_exec($ch);
+            $resposta = curl_exec($ch);
             curl_close($ch);
 
-            if (!$responseApi) {
-                $response->getBody()->write(json_encode(["erro" => "Falha na requisição à API do Banco Central."]));
-                return $response->withStatus(500)->withHeader('Content-Type', 'application/json');
+            if (!$resposta) {
+                return $response->withStatus(400);
             }
 
-            $valoresApi = json_decode($responseApi, true);
+            $valoresApi = json_decode($resposta, true);
 
             if (!is_array($valoresApi) || empty($valoresApi)) {
-                $response->getBody()->write(json_encode(["erro" => "Resposta inválida da API do Banco Central."]));
-                return $response->withStatus(400)->withHeader('Content-Type', 'application/json');
+                return $response->withStatus(400);
             }
 
             $valorTotal = 0.0;
-            $quantidade = 0;
 
             foreach ($valoresApi as $valor) {
                 if (isset($valor['valor'])) {
                     $valorTotal += floatval(str_replace(',', '.', $valor['valor']));
-                    $quantidade++;
                 }
             }
 
-            if ($quantidade === 0) {
-                $response->getBody()->write(json_encode(["erro" => "Nenhum valor de taxa Selic encontrado."]));
-                return $response->withStatus(400)->withHeader('Content-Type', 'application/json');
-            }
+            $valorTotal = round($valorTotal, 2) / 100;
 
-            $taxaMedia = round($valorTotal / $quantidade, 4);
+            $jurosModel = new taxaJuros(
+                $dados['dataInicio'],
+                $dados['dataFinal'],
+                $valorTotal,
+                uniqid()
+            );
 
-            $compraDAO = new ComprasDAO();
-            $compraDAO->atualizarBDCompras($taxaMedia);
+            $jurosDao = new JurosDAO();
+            $jurosDao->salvarJuros($jurosModel);
 
-            $jurosModel = new taxaJuros($dados['dataInicio'], $dados['dataFinal'], $taxaMedia, '1');
-            $jurosDAO = new \JurosDAO();
-            $jurosDAO->salvarJuros($jurosModel);
-
-            $response->getBody()->write(json_encode(["sucesso" => "A taxa de juros foi atualizada com sucesso."]));
+            // Retorna apenas a nova taxa no corpo
+            $response->getBody()->write(json_encode(["taxa" => $valorTotal]));
             return $response->withStatus(200)->withHeader('Content-Type', 'application/json');
-        } catch (\Exception $e) {
-            $response->getBody()->write(json_encode(["erro" => "Erro interno: " . $e->getMessage()]));
-            return $response->withStatus(500)->withHeader('Content-Type', 'application/json');
+
+        } catch (Exception $e) {
+            return $response->withStatus(400); // erro inesperado → ainda responde com 400 sem corpo
         }
     }
 }
