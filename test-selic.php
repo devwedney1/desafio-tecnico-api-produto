@@ -4,25 +4,18 @@ require 'vendor/autoload.php';
 
 use GuzzleHttp\Client;
 
+// Cria instância do Guzzle
 $client = new Client();
 
-// Define a data final como ontem (pois hoje pode não ter valor disponível)
-$dataFinal = (new DateTime('-1 day', new DateTimeZone('UTC')))->format('d/m/Y');
+// Define a data final como a data atual (ou ontem, se preferir)
+$dataFinal = (new DateTime('now', new DateTimeZone('UTC')))->format('d/m/Y');
 
-// Define a data inicial provisória: máximo 10 anos antes da data final
-$dataInicialProvisoria = (new DateTime($dataFinal, new DateTimeZone('UTC')))
-                        ->modify('-10 years')
-                        ->format('d/m/Y');
+// Define a data inicial como 5 anos antes da final
+$dataInicial = (new DateTime($dataFinal, new DateTimeZone('UTC')))
+                ->modify('-5 years')
+                ->format('d/m/Y');
 
-// Define a data mínima permitida pela API do Banco Central
-$dataInicialMinima = '01/01/2000';
-
-// Ajusta a data inicial para não ser anterior à mínima permitida
-$dataInicial = (DateTime::createFromFormat('d/m/Y', $dataInicialProvisoria) < DateTime::createFromFormat('d/m/Y', $dataInicialMinima)) 
-    ? $dataInicialMinima 
-    : $dataInicialProvisoria;
-
-// Monta a URL da requisição com as datas no formato correto
+// Monta a URL da requisição com as datas no formato dd/mm/yyyy
 $url = "https://api.bcb.gov.br/dados/serie/bcdata.sgs.11/dados?formato=json&dataInicial={$dataInicial}&dataFinal={$dataFinal}";
 
 try {
