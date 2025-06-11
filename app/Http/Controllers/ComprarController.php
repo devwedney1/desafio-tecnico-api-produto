@@ -9,75 +9,82 @@ use App\Model\Compra;
 use Psr\Http\Message\ResponseInterface as Response;
 use Psr\Http\Message\ServerRequestInterface as Request;
 use Exception;
+use Ramsey\Uuid\Uuid;
+
 
 class ComprarController
 {
     public function criar(Request $request, Response $response): Response
     {
-        $dados = json_decode($request->getBody()->getContents(), true);
-
-        if (json_last_error() !== JSON_ERROR_NONE) {
-            $response->getBody()->write(json_encode(['erro' => 'JSON inválido']));
-            return $response->withStatus(400)->withHeader('Content-Type', 'application/json');
-        }
-
-        // Validação básica
-        if (
-            !isset($dados['idProduto']) ||
-            !isset($dados['valorEntrada']) ||
-            !isset($dados['qtdParcelas'])
-        ) {
-            $response->getBody()->write(json_encode(['erro' => 'Campos obrigatórios ausentes.']));
-            return $response->withStatus(422)->withHeader('Content-Type', 'application/json');
-        }
-
-        $idProduto = (int)$dados['idProduto'];
-        $entrada = (float)$dados['valorEntrada'];
-        $parcelas = (int)$dados['qtdParcelas'];
-
         try {
-            $produtoDao = new ProdutoDao();
+            $data = $request->getParsedBody();
+
+            $idProduto = $data['idProduto'] ?? '';
+            $valorEntrada = (float)($data['valorEntrada'] ?? 0);
+            $qtdParcelas = (int)($data['qtdParcelas'] ?? 0);
+
+            if (!$idProduto || $valorEntrada < 0 || $qtdParcelas <= 0) {
+                $response->getBody()->write(json_encode(['erro' => 'Dados inválidos.']));
+                return $response->withStatus(400)->withHeader('Content-Type', 'application/json');
+            }
+
             $compraDao = new ComprarDAO();
             $jurosDao = new JurosDAO();
 
-            // Verifica se produto existe
-            if (!$produtoDao->existsById($idProduto)) {
+            $valorProduto = $compraDao->buscarValorProduto($idProduto);
+            if ($valorProduto <= 0) {
                 $response->getBody()->write(json_encode(['erro' => 'Produto não encontrado.']));
                 return $response->withStatus(422)->withHeader('Content-Type', 'application/json');
             }
 
-            // Busca o produto para pegar o valor
-            $produto = $produtoDao->findById($idProduto);
-            $valorProduto = $produto->getValor();
-
-            if ($entrada < 0 || $parcelas < 0 || $entrada > $valorProduto) {
-                $response->getBody()->write(json_encode(['erro' => 'Valores de entrada ou parcelas inválidos.']));
+            $valorFinanciado = $valorProduto - $valorEntrada;
+            if ($valorFinanciado <= 0) {
+                $response->getBody()->write(json_encode(['erro' => 'Valor de entrada maior ou igual ao valor do produto.']));
                 return $response->withStatus(422)->withHeader('Content-Type', 'application/json');
             }
 
-            // Cálculo dos valores
-            $valorParcela = 0.0;
-            $jurosAplicado = 0.0;
-
-            if ($parcelas > 0) {
-                $valorParcela = ($valorProduto - $entrada) / $parcelas;
+            $juros = $jurosDao->mostrarJuros();
+            if (!$juros) {
+                $response->getBody()->write(json_encode(['erro' => 'Nenhuma taxa de juros válida encontrada.']));
+                return $response->withStatus(422)->withHeader('Content-Type', 'application/json');
             }
 
-            if ($parcelas > 6) {
-                $taxaSelic = $jurosDao->mostrarJuros(); // Deve retornar um float como 13.75
-                $jurosDecimal = $taxaSelic / 100;
-                $valorFinanciado = $valorProduto - $entrada;
-                $valorComJuros = $valorFinanciado * (1 + $jurosDecimal);
-                $jurosAplicado = $valorComJuros - $valorFinanciado;
-                $valorParcela = $valorComJuros / $parcelas;
-            }
+            $taxa = $juros->getJuros();
+            $valorFinal = $valorFinanciado * pow(1 + $taxa, $qtdParcelas);
+            $vlrParcela = $valorFinal / $qtdParcelas;
 
-            $compra = new Compra($idProduto, $entrada, $parcelas, $valorParcela);
-            $compra->setJurosAplicado($jurosAplicado);
+            $idCompra = Uuid::uuid4()->toString();
+
+            $compra = new Compra($idCompra, $idProduto, $valorEntrada, $qtdParcelas, $vlrParcela);
+            $compra->setJurosAplicado($taxa);
+            $compra->setIdTaxaJuros($juros->getId());
 
             $compraDao->inserir($compra);
 
-            $response->getBody()->write(json_encode(['mensagem' => 'Compra registrada com sucesso.']));
+            $parcelas = [];
+            $dataAtual = new \DateTime();
+            for ($i = 1; $i <= $qtdParcelas; $i++) {
+                $dataVencimento = clone $dataAtual;
+                $dataVencimento->modify("+{$i} months");
+
+                $parcelas[] = [
+                    'idCompra' => $idCompra,
+                    'numeroParcela' => $i,
+                    'valorParcela' => round($vlrParcela, 2),
+                    'dataVencimento' => $dataVencimento->format('Y-m-d')
+                ];
+            }
+
+            $compraDao->inserirParcelas($parcelas);
+
+            $response->getBody()->write(json_encode([
+                'mensagem' => 'Compra realizada com sucesso.',
+                'idCompra' => $idCompra,
+                'valorParcela' => round($vlrParcela, 2),
+                'totalComJuros' => round($valorFinal, 2),
+                'jurosAplicado' => $taxa
+            ]));
+
             return $response->withStatus(201)->withHeader('Content-Type', 'application/json');
 
         } catch (Exception $e) {

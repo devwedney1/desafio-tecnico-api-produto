@@ -15,30 +15,58 @@ class ComprarDAO
     {
         $this->conn = DataConnection::get_connection();
     }
+// ...existing code...
+public function inserirParcelas(array $parcelas)
+{
+    $stmt = $this->conn->prepare(
+    'INSERT INTO parcelas (id, idcompra, numeroParcela, valorParcela, dataVencimento) VALUES (?, ?, ?, ?, ?)'
+);
+foreach ($parcelas as $parcela) {
+    $stmt->execute([
+        $parcela['id'],
+        $parcela['idCompra'],
+        $parcela['numeroParcela'],
+        $parcela['valorParcela'],
+        $parcela['dataVencimento']
+    ]);
+}
+
+}
+
+    public function buscarTaxaJurosAtual(): ?array
+{
+    $sql = "SELECT id, taxa FROM taxa_juros WHERE CURRENT_DATE BETWEEN dataInicio AND dataFinal LIMIT 1";
+    $stmt = $this->conn->query($sql);
+    $result = $stmt->fetch(PDO::FETCH_ASSOC);
+    return $result ?: null;
+}
+
 
     public function inserir(Compra $compra): void
+{
+    $sql = "INSERT INTO compras (id, idProduto, valorEntrada, qtdParcelas, idTaxaJuros)
+            VALUES (:id, :idProduto, :valorEntrada, :qtdParcelas, :idTaxaJuros)";
+
+    $stmt = $this->conn->prepare($sql);
+    $stmt->bindValue(':id', $compra->getId());
+    $stmt->bindValue(':idProduto', $compra->getIdProduto());
+    $stmt->bindValue(':valorEntrada', $compra->getValorEntrada());
+    $stmt->bindValue(':qtdParcelas', $compra->getQtdParcelas());
+    $stmt->bindValue(':idTaxaJuros', $compra->getIdTaxaJuros());
+
+    $stmt->execute();
+}
+
+
+
+    public function buscarValorProduto(string $idProduto): float
     {
-        $sql = "INSERT INTO compras (idProduto, valorEntrada, qtdParcelas, vlrParcela, jurosAplicados)
-                VALUES (:idProduto, :valorEntrada, :qtdParcelas, :vlrParcela, :jurosAplicado)";
-
+        $sql = "SELECT valorProduto FROM produtos WHERE id = :id";
         $stmt = $this->conn->prepare($sql);
-        $stmt->bindValue(':idProduto', $compra->getIdProduto());
-        $stmt->bindValue(':valorEntrada', $compra->getValorEntrada());
-        $stmt->bindValue(':qtdParcelas', $compra->getQtdParcelas());
-        $stmt->bindValue(':vlrParcela', $compra->getVlrParcela());
-        $stmt->bindValue(':jurosAplicado', $compra->getJurosAplicado());
-
-        $stmt->execute();
-    }
-
-    public function buscarValorProduto(int $idProduto): float
-    {
-        $sql = "SELECT valor FROM produtos WHERE id = :id";
-        $stmt = $this->conn->prepare($sql);
-        $stmt->bindValue(':id', $idProduto);
+        $stmt->bindValue(':id', $idProduto, PDO::PARAM_STR);
         $stmt->execute();
 
         $result = $stmt->fetch(PDO::FETCH_ASSOC);
-        return $result ? (float)$result['valor'] : 0.0;
+        return $result ? (float)$result['valorProduto'] : 0.0;
     }
 }

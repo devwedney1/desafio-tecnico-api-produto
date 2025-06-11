@@ -54,7 +54,7 @@ CREATE TABLE IF NOT EXISTS compras
 -- Tabela de parcelas
 CREATE TABLE IF NOT EXISTS parcelas
 (
-    id              CHAR(36) PRIMARY KEY,
+    id             CHAR(36) PRIMARY KEY,
     idCompra       CHAR(36)       NOT NULL,
     numeroParcela  INT            NOT NULL,
     valorParcela   DECIMAL(10, 2) NOT NULL,
