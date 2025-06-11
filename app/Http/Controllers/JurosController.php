@@ -62,7 +62,7 @@ class JurosController
             }
 
 // Arredonda para 2 casas decimais
-            $valorTotal = round($valorTotal, 2);
+            $valorTotal = round($valorTotal, 2)/ 100;
 
             // Salva a taxa acumulada no banco
             $jurosModel = new taxaJuros(

@@ -16,22 +16,24 @@ class ComprarDAO
         $this->conn = DataConnection::get_connection();
     }
 // ...existing code...
-public function inserirParcelas(array $parcelas)
-{
-    $stmt = $this->conn->prepare(
-    'INSERT INTO parcelas (id, idcompra, numeroParcela, valorParcela, dataVencimento) VALUES (?, ?, ?, ?, ?)'
-);
-foreach ($parcelas as $parcela) {
-    $stmt->execute([
-        $parcela['id'],
-        $parcela['idCompra'],
-        $parcela['numeroParcela'],
-        $parcela['valorParcela'],
-        $parcela['dataVencimento']
-    ]);
-}
+    public function inserirParcelas(array $parcelas)
+    {
+        $stmt = $this->conn->prepare(
+            'INSERT INTO parcelas (id, idcompra, numeroParcela, valorParcela, dataVencimento) VALUES (?, ?, ?, ?, ?)'
+        );
+        
+        foreach ($parcelas as $parcela) {   
 
-}
+            $stmt->bindValue(1, $parcela['id']);
+            $stmt->bindValue(2, $parcela['idCompra']);
+            $stmt->bindValue(3, $parcela['numeroParcela'], PDO::PARAM_INT);
+            $stmt->bindValue(4, number_format($parcela['valorParcela'], 2, '.', ''), PDO::PARAM_STR);
+            $stmt->bindValue(5, $parcela['dataVencimento']);
+            $stmt->execute();
+        }
+    }
+
+
 
     public function buscarTaxaJurosAtual(): ?array
 {

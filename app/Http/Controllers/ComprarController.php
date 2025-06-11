@@ -51,7 +51,8 @@ class ComprarController
 
             $taxa = $juros->getJuros();
             $valorFinal = $valorFinanciado * pow(1 + $taxa, $qtdParcelas);
-            $vlrParcela = $valorFinal / $qtdParcelas;
+            $vlrParcela = round($valorFinal / $qtdParcelas, 2); // já arredonda aqui
+
 
             $idCompra = Uuid::uuid4()->toString();
 
@@ -68,6 +69,7 @@ class ComprarController
                 $dataVencimento->modify("+{$i} months");
 
                 $parcelas[] = [
+                    'id' => Uuid::uuid4()->toString(), // <-- Agora está criando um ID único
                     'idCompra' => $idCompra,
                     'numeroParcela' => $i,
                     'valorParcela' => round($vlrParcela, 2),
