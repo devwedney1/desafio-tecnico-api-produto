@@ -1,7 +1,11 @@
 <?php
 
-require_once 'JurosModel.php';
-require_once '../connection/produto.php';
+namespace App\Dao;
+
+use PDO;
+use App\Connection\DataConnection;
+use App\Model\taxaJuros;
+
 
 class JurosDAO {
 
@@ -11,7 +15,7 @@ class JurosDAO {
         $this->conn = DataConnection::get_connection();        
     }
 
-    public function salvarJuros(Juros $juros) {
+    public function salvarJuros(taxaJuros $juros) {
         $stmt = $this->conn->prepare(
             'UPDATE taxa_juros 
              SET dataInicio = ?, dataFinal = ?, taxa = ?, updated_at = NOW() 
@@ -34,7 +38,7 @@ class JurosDAO {
         $row = $stmt->fetch(PDO::FETCH_ASSOC);
 
         if ($row) {
-            $juros = new Juros();
+            $juros = new taxaJuros();
             $juros->setId($row['id']);
             $juros->setJuros($row['taxa']);
             $juros->setDataInicial($row['dataInicio']);
