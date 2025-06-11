@@ -1,6 +1,6 @@
 <?php
 
-class Juros {
+class taxaJuros {
     private string $id;
     private string $dataInicial;
     private string $dataFinal;
