@@ -2,9 +2,9 @@
 
 namespace App\Http\Controllers;
 
-require_once './app/Dao/CompraDAO.php';
-require_once './app/Dao/JurosDAO.php';
-require_once './app/Dao/juros.php';
+use App\DAO\ComprasDAO;
+use App\DAO\JurosDAO;
+use App\Model\taxaJuros;
 
 use Psr\Http\Message\ResponseInterface as Response;
 use Psr\Http\Message\ServerRequestInterface as Request;
@@ -74,7 +74,7 @@ class JurosController
             $compraDAO = new ComprasDAO();
             $compraDAO->atualizarBDCompras($taxaMedia);
 
-            $jurosModel = new \Juros($dados['dataInicio'], $dados['dataFinal'], $taxaMedia, '1');
+            $jurosModel = new taxaJuros($dados['dataInicio'], $dados['dataFinal'], $taxaMedia, '1');
             $jurosDAO = new \JurosDAO();
             $jurosDAO->salvarJuros($jurosModel);
 

@@ -1,5 +1,7 @@
 <?php
 
+namespace App\Model;
+
 class taxaJuros {
     private string $id;
     private string $dataInicial;
